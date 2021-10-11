@@ -5,10 +5,88 @@
  * Created on 3 de octubre de 2021, 08:11 PM
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+//********************
+// #pragma config statements should precede project file includes.
+// Use project enums instead of #define for ON and OFF.
+
+
+// PIC18F4550 Configuration Bit Settings
+
+// 'C' source line config statements
+
+// CONFIG1L
+#pragma config PLLDIV = 5       // PLL Prescaler Selection bits (Divide by 5 (20 MHz oscillator input))
+#pragma config CPUDIV = OSC3_PLL4// System Clock Postscaler Selection bits ([Primary Oscillator Src: /3][96 MHz PLL Src: /4])
+#pragma config USBDIV = 2       // USB Clock Selection bit (used in Full-Speed USB mode only; UCFG:FSEN = 1) (USB clock source comes from the 96 MHz PLL divided by 2)
+
+// CONFIG1H
+#pragma config FOSC = HSPLL_HS  // Oscillator Selection bits (HS oscillator, PLL enabled (HSPLL))
+#pragma config FCMEN = OFF      // Fail-Safe Clock Monitor Enable bit (Fail-Safe Clock Monitor disabled)
+#pragma config IESO = OFF       // Internal/External Oscillator Switchover bit (Oscillator Switchover mode disabled)
+
+// CONFIG2L
+#pragma config PWRT = ON        // Power-up Timer Enable bit (PWRT enabled)
+#pragma config BOR = OFF        // Brown-out Reset Enable bits (Brown-out Reset disabled in hardware and software)
+#pragma config BORV = 3         // Brown-out Reset Voltage bits (Minimum setting 2.05V)
+#pragma config VREGEN = OFF     // USB Voltage Regulator Enable bit (USB voltage regulator disabled)
+
+// CONFIG2H
+#pragma config WDT = OFF        // Watchdog Timer Enable bit (WDT disabled (control is placed on the SWDTEN bit))
+#pragma config WDTPS = 32768    // Watchdog Timer Postscale Select bits (1:32768)
+
+// CONFIG3H
+#pragma config CCP2MX = OFF     // CCP2 MUX bit (CCP2 input/output is multiplexed with RB3)
+#pragma config PBADEN = OFF     // PORTB A/D Enable bit (PORTB<4:0> pins are configured as digital I/O on Reset)
+#pragma config LPT1OSC = OFF    // Low-Power Timer 1 Oscillator Enable bit (Timer1 configured for higher power operation)
+#pragma config MCLRE = ON       // MCLR Pin Enable bit (MCLR pin enabled; RE3 input pin disabled)
+
+// CONFIG4L
+#pragma config STVREN = OFF     // Stack Full/Underflow Reset Enable bit (Stack full/underflow will not cause Reset)
+#pragma config LVP = OFF        // Single-Supply ICSP Enable bit (Single-Supply ICSP disabled)
+#pragma config ICPRT = OFF      // Dedicated In-Circuit Debug/Programming Port (ICPORT) Enable bit (ICPORT disabled)
+#pragma config XINST = OFF      // Extended Instruction Set Enable bit (Instruction set extension and Indexed Addressing mode disabled (Legacy mode))
+
+// CONFIG5L
+#pragma config CP0 = OFF        // Code Protection bit (Block 0 (000800-001FFFh) is not code-protected)
+#pragma config CP1 = OFF        // Code Protection bit (Block 1 (002000-003FFFh) is not code-protected)
+#pragma config CP2 = OFF        // Code Protection bit (Block 2 (004000-005FFFh) is not code-protected)
+#pragma config CP3 = OFF        // Code Protection bit (Block 3 (006000-007FFFh) is not code-protected)
+
+// CONFIG5H
+#pragma config CPB = OFF        // Boot Block Code Protection bit (Boot block (000000-0007FFh) is not code-protected)
+#pragma config CPD = OFF        // Data EEPROM Code Protection bit (Data EEPROM is not code-protected)
+
+// CONFIG6L
+#pragma config WRT0 = OFF       // Write Protection bit (Block 0 (000800-001FFFh) is not write-protected)
+#pragma config WRT1 = OFF       // Write Protection bit (Block 1 (002000-003FFFh) is not write-protected)
+#pragma config WRT2 = OFF       // Write Protection bit (Block 2 (004000-005FFFh) is not write-protected)
+#pragma config WRT3 = OFF       // Write Protection bit (Block 3 (006000-007FFFh) is not write-protected)
+
+// CONFIG6H
+#pragma config WRTC = OFF       // Configuration Register Write Protection bit (Configuration registers (300000-3000FFh) are not write-protected)
+#pragma config WRTB = OFF       // Boot Block Write Protection bit (Boot block (000000-0007FFh) is not write-protected)
+#pragma config WRTD = OFF       // Data EEPROM Write Protection bit (Data EEPROM is not write-protected)
+
+// CONFIG7L
+#pragma config EBTR0 = OFF      // Table Read Protection bit (Block 0 (000800-001FFFh) is not protected from table reads executed in other blocks)
+#pragma config EBTR1 = OFF      // Table Read Protection bit (Block 1 (002000-003FFFh) is not protected from table reads executed in other blocks)
+#pragma config EBTR2 = OFF      // Table Read Protection bit (Block 2 (004000-005FFFh) is not protected from table reads executed in other blocks)
+#pragma config EBTR3 = OFF      // Table Read Protection bit (Block 3 (006000-007FFFh) is not protected from table reads executed in other blocks)
+
+// CONFIG7H
+#pragma config EBTRB = OFF      // Boot Block Table Read Protection bit (Boot block (000000-0007FFh) is not protected from table reads executed in other blocks)
+
+// #pragma config statements should precede project file includes.
+// Use project enums instead of #define for ON and OFF.
+
+//********************
+#include <xc.h> // include processor files - each processor file is guarded.  
 #include <stdint.h>
-#include <p18f4550.h>
+#include <stdbool.h>
+
+#include "stdio.h"
+#include "stdlib.h"
+//#include <p18f4550.h>
 
 /*
  * 
@@ -85,8 +163,8 @@ void parseNote(unsigned char n){
     T0CONbits.TMR0ON = 0;
     INTCONbits.TMR0IF = 0;
     if(df == 0){
-        PORTDbits.RD0 = 0;
-        for(int i=0; i<=523; i++){
+        PORTDbits.RD4 = 0;
+        for(int i=0; i<=523*2; i++){
             TMR0_WriteTimer(63624);
             T0CONbits.TMR0ON = 1;
             while(INTCONbits.TMR0IF == 0);
@@ -94,11 +172,11 @@ void parseNote(unsigned char n){
             INTCONbits.TMR0IF = 0;
         } 
     }else{
-        for(int i=0; i<=df; i++){
-            if(PORTDbits.RD0 == 0){
-                PORTDbits.RD0 = 1;
-            }else if(PORTDbits.RD0 == 1){
-                PORTDbits.RD0 = 0;
+        for(int i=0; i<=df*2; i++){
+            if(PORTDbits.RD4 == 0){
+                PORTDbits.RD4 = 1;
+            }else if(PORTDbits.RD4 == 1){
+                PORTDbits.RD4 = 0;
             }
             TMR0_WriteTimer(init);
             T0CONbits.TMR0ON = 1;
@@ -145,7 +223,11 @@ void thirdSong(){ // HARRY POTTER
     }
 }
 
-int main(int argc, char** argv) {
+void main(void) {
+       
+    TRISD = 0b00001110;
+    TRISB = 0b00000000;
+    
     //PORTA, PORTB and PORTE are digital
     ADCON1bits.PCFG = 0xF; 
     
@@ -153,8 +235,6 @@ int main(int argc, char** argv) {
     OSCCON = 0x60;
     // INTSRC 31kHz derived from INTRC internal oscillator; TUN = 0
     OSCTUNE = 0x00;
-    
-    TRISD = 0b00001110;
     
     INTCONbits.GIE = 1;
     //INTCONbits.PEIE = 1;
@@ -170,6 +250,8 @@ int main(int argc, char** argv) {
     */
     T0CONbits.PSA = 1;
     
+    PORTDbits.RD4 = 0;
+    PORTB = 0b11111111;
     while(1){
         if(PORTDbits.RD1 == 1){
             firstSong();
@@ -180,137 +262,5 @@ int main(int argc, char** argv) {
         }
     }
 
-    return 1;
+    //return 1;
 }
-
-/*
-switch(n){
-        case 'c': //261.63 Hz
-            for(int i=0; i<=523; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(63624); // T = 3822 us -> T/2 = 1911 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'd': //293.67 Hz
-            for(int i=0; i<=587; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(63832); // T = 3405 us -> T/2 = 1703 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'e': //329.63 Hz
-            for(int i=0; i<=659; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(64018); // T = 3034 us -> T/2 = 1517 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'f': //349.23 Hz
-            for(int i=0; i<=699; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(64103); // T = 2864 us -> T/2 = 1432 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'g': //392 Hz
-            for(int i=0; i<=784; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(64259); // T = 2551 us -> T/2 = 1276 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'a': //440 Hz
-            for(int i=0; i<=880; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(64398); // T = 2273 us -> T/2 = 1137 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'b': //493.88 Hz
-            for(int i=0; i<=988; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(64523); // T = 2025 us -> T/2 = 1012 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        case 'A': //466.16 Hz
-            for(int i=0; i<=932; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(64462); // T = 2145 us -> T/2 = 1073 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }
-            break;
-        // ...
-        default: // case 'c' -> 261.63 Hz
-            for(int i=0; i<=523; i++){
-                if(PORTDbits.RD0 == 0){
-                    PORTDbits.RD0 = 1;
-                }else if(PORTDbits.RD0 == 1){
-                    PORTDbits.RD0 = 0;
-                }
-                TMR0_WriteTimer(63624); // T = 3822 us -> T/2 = 1911 us
-                T0CONbits.TMR0ON = 1;
-                while(INTCONbits.TMR0IF == 0);
-                T0CONbits.TMR0ON = 0;
-                INTCONbits.TMR0IF = 0;
-            }            
-            break;
-    }
- */
